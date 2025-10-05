@@ -7,6 +7,7 @@ interface EnvironmentalDataProps {
   lat: number;
   lon: number;
   regionName: string;
+  onDataUpdate?: (data: { temperature: number; precipitation: number; soilMoisture: number }) => void;
 }
 
 interface NASAData {
@@ -18,7 +19,7 @@ interface NASAData {
 
 const NASA_API_KEY = "MtVTthAfPBXAaDrg2SI29HrjcTxulWdkDxDKeAGf";
 
-const EnvironmentalData = ({ lat, lon, regionName }: EnvironmentalDataProps) => {
+const EnvironmentalData = ({ lat, lon, regionName, onDataUpdate }: EnvironmentalDataProps) => {
   const [data, setData] = useState<NASAData>({});
   const [isLoading, setIsLoading] = useState(true);
 
@@ -43,12 +44,23 @@ const EnvironmentalData = ({ lat, lon, regionName }: EnvironmentalDataProps) => 
           const avgPrecip = precip.reduce((a, b) => a + b, 0) / precip.length;
           const avgHumidity = humidity.reduce((a, b) => a + b, 0) / humidity.length;
           
-          setData({
+          const newData = {
             temperature: avgTemp,
             precipitation: avgPrecip,
             soilMoisture: avgHumidity,
             vegetation: Math.random() * 0.8 + 0.2, // Placeholder for NDVI data
-          });
+          };
+          
+          setData(newData);
+          
+          // Pass data to parent component
+          if (onDataUpdate) {
+            onDataUpdate({
+              temperature: avgTemp,
+              precipitation: avgPrecip,
+              soilMoisture: avgHumidity,
+            });
+          }
         }
         
         toast.success("Environmental data loaded successfully");

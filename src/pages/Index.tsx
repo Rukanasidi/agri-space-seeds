@@ -21,6 +21,10 @@ const Index = () => {
     setSelectedRegion({ lat, lon, name });
   };
 
+  const handleDataUpdate = (data: { temperature: number; precipitation: number; soilMoisture: number }) => {
+    setEnvironmentalData(data);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Hero />
@@ -32,6 +36,7 @@ const Index = () => {
             lat={selectedRegion.lat}
             lon={selectedRegion.lon}
             regionName={selectedRegion.name}
+            onDataUpdate={handleDataUpdate}
           />
           <CropRecommendations
             temperature={environmentalData.temperature}
