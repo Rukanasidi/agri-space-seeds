@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Search } from "lucide-react";
+import { toast } from "sonner";
 
 interface RegionSelectorProps {
   onRegionSelect: (lat: number, lon: number, regionName: string) => void;
@@ -13,7 +14,10 @@ const RegionSelector = ({ onRegionSelect }: RegionSelectorProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim()) {
+      toast.error("Please enter a location to search");
+      return;
+    }
     
     setIsLoading(true);
     try {
@@ -26,12 +30,22 @@ const RegionSelector = ({ onRegionSelect }: RegionSelectorProps) => {
       if (data && data.length > 0) {
         const { lat, lon, display_name } = data[0];
         onRegionSelect(parseFloat(lat), parseFloat(lon), display_name);
+        toast.success(`Loading data for ${display_name}`);
+        setSearchQuery(""); // Clear search after successful selection
+      } else {
+        toast.error("Location not found. Please try a different search term.");
       }
     } catch (error) {
       console.error("Error searching location:", error);
+      toast.error("Failed to search location. Please try again.");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handlePresetSelect = (region: typeof presetRegions[0]) => {
+    onRegionSelect(region.lat, region.lon, region.name);
+    toast.success(`Loading data for ${region.name}`);
   };
 
   const presetRegions = [
@@ -66,11 +80,12 @@ const RegionSelector = ({ onRegionSelect }: RegionSelectorProps) => {
               />
               <Button 
                 onClick={handleSearch} 
-                disabled={isLoading}
+                disabled={isLoading || !searchQuery.trim()}
                 className="bg-primary hover:bg-primary/90"
+                type="button"
               >
                 <Search className="w-4 h-4 mr-2" />
-                Search
+                {isLoading ? "Searching..." : "Search"}
               </Button>
             </div>
             
@@ -81,8 +96,9 @@ const RegionSelector = ({ onRegionSelect }: RegionSelectorProps) => {
                   <Button
                     key={region.name}
                     variant="outline"
-                    onClick={() => onRegionSelect(region.lat, region.lon, region.name)}
+                    onClick={() => handlePresetSelect(region)}
                     className="justify-start h-auto py-4 hover:bg-primary/5 hover:border-primary transition-colors"
+                    type="button"
                   >
                     <MapPin className="w-4 h-4 mr-2 text-primary flex-shrink-0" />
                     <span className="text-left">{region.name}</span>
